@@ -1,0 +1,72 @@
+import java.util.Scanner;
+
+public class Main {
+    public static String cipher(String text, int shift) {
+        StringBuilder result = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            if (c >= 'a' && c <= 'z') {
+                int newChar = (c - 'a' + shift + 26) % 26 + 'a';
+                result.append((char) newChar);
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("\n--- SHIFT CIPHER MENU ---");
+            System.out.println("1. Encrypt");
+            System.out.println("2. Decrypt");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            
+            while (!sc.hasNextInt()) {
+                System.out.print("Invalid choice. Enter 1, 2, or 3: ");
+                sc.next();
+            }
+
+            int choice = sc.nextInt();
+            sc.nextLine(); 
+
+            if (choice == 3) {
+                System.out.println("Exiting program...");
+                break;
+            }
+
+            if (choice != 1 && choice != 2) {
+                System.out.println("Invalid choice. Try again.");
+                continue;
+            }
+
+            System.out.print("Enter lowercase text: ");
+            String text = sc.nextLine().trim();
+
+            while (!text.matches("[a-z ]+")) {
+                System.out.print("Please enter only lowercase letters (a-z): ");
+                text = sc.nextLine().trim();
+            }
+
+            System.out.print("Enter shift value (integer): ");
+            while (!sc.hasNextInt()) {
+                System.out.print("Invalid input. Enter a valid integer: ");
+                sc.next();
+            }
+            int shift = sc.nextInt();
+            sc.nextLine();
+
+            if (choice == 1) {
+                String encrypted = cipher(text, shift).toUpperCase();
+                System.out.println("Encrypted Text: " + encrypted);
+            } else {
+                String decrypted = cipher(text, -shift);
+                System.out.println("Decrypted Text: " + decrypted);
+            }
+        }
+
+        sc.close();
+    }
+}
