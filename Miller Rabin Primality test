@@ -1,0 +1,88 @@
+import java.math.BigInteger;
+import java.util.Random;
+import java.util.Scanner;
+
+public class Main {
+
+    // Perform the Miller-Rabin primality test
+    public static boolean isProbablePrime(BigInteger n, int k) {
+        if (n.compareTo(BigInteger.valueOf(2)) < 0)
+            return false;
+        if (n.equals(BigInteger.valueOf(2)) || n.equals(BigInteger.valueOf(3)))
+            return true;
+        if (n.mod(BigInteger.TWO).equals(BigInteger.ZERO))
+            return false;
+
+        BigInteger d = n.subtract(BigInteger.ONE);
+        int r = 0;
+        while (d.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
+            d = d.divide(BigInteger.TWO);
+            r++;
+        }
+
+        Random rand = new Random();
+        for (int i = 0; i < k; i++) {
+            BigInteger a;
+            do {
+                a = new BigInteger(n.bitLength(), rand);
+            } while (a.compareTo(BigInteger.TWO) < 0 || a.compareTo(n.subtract(BigInteger.TWO)) > 0);
+
+            BigInteger x = a.modPow(d, n);
+            if (x.equals(BigInteger.ONE) || x.equals(n.subtract(BigInteger.ONE)))
+                continue;
+
+            boolean continueLoop = false;
+            for (int j = 0; j < r - 1; j++) {
+                x = x.modPow(BigInteger.TWO, n);
+                if (x.equals(n.subtract(BigInteger.ONE))) {
+                    continueLoop = true;
+                    break;
+                }
+            }
+            if (!continueLoop)
+                return false;
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("\n--- MILLER-RABIN PRIMALITY TEST ---");
+            System.out.println("1. Test a number");
+            System.out.println("2. Exit");
+            System.out.print("Enter your choice: ");
+
+            while (!sc.hasNextInt()) {
+                System.out.print("Invalid input. Enter 1 or 2: ");
+                sc.next();
+            }
+            int choice = sc.nextInt();
+
+            if (choice == 2) {
+                System.out.println("Exiting program...");
+                break;
+            }
+
+            if (choice != 1) {
+                System.out.println("Invalid choice! Try again.");
+                continue;
+            }
+
+            System.out.print("Enter a number to test: ");
+            BigInteger n = sc.nextBigInteger();
+
+            System.out.print("Enter number of test rounds (e.g. 5 or 10): ");
+            int k = sc.nextInt();
+
+            boolean isPrime = isProbablePrime(n, k);
+            if (isPrime)
+                System.out.println(n + " is probably PRIME.");
+            else
+                System.out.println(n + " is COMPOSITE.");
+        }
+
+        sc.close();
+    }
+}
