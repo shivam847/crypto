@@ -1,0 +1,172 @@
+import java.util.*;
+
+public class Main {
+
+    private static char[][] generateKeyMatrix(String key) {
+        boolean[] used = new boolean[26];
+        key = key.replace("j", "i");
+        StringBuilder sb = new StringBuilder();
+
+        for (char c : key.toCharArray()) {
+            if (c >= 'a' && c <= 'z' && !used[c - 'a']) {
+                used[c - 'a'] = true;
+                sb.append(c);
+            }
+        }
+
+        for (char c = 'a'; c <= 'z'; c++) {
+            if (c == 'j') continue;
+            if (!used[c - 'a']) {
+                used[c - 'a'] = true;
+                sb.append(c);
+            }
+        }
+
+        char[][] matrix = new char[5][5];
+        int idx = 0;
+        for (int i = 0; i < 5; i++)
+            for (int j = 0; j < 5; j++)
+                matrix[i][j] = sb.charAt(idx++);
+
+        return matrix;
+    }
+
+    private static int[] findPosition(char[][] matrix, char c) {
+        if (c == 'j') c = 'i';
+        for (int i = 0; i < 5; i++)
+            for (int j = 0; j < 5; j++)
+                if (matrix[i][j] == c)
+                    return new int[]{i, j};
+        return null;
+    }
+
+    private static String formatText(String text, boolean forEncryption) {
+        text = text.replace("j", "i").replaceAll("[^a-z]", "");
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < text.length(); i++) {
+            sb.append(text.charAt(i));
+            if (i + 1 < text.length()) {
+                if (text.charAt(i) == text.charAt(i + 1))
+                    sb.append('x');
+            }
+        }
+
+        if (sb.length() % 2 != 0) sb.append('x');
+        return sb.toString();
+    }
+
+    private static String encrypt(String text, char[][] matrix) {
+        text = formatText(text, true);
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < text.length(); i += 2) {
+            char a = text.charAt(i);
+            char b = text.charAt(i + 1);
+            int[] posA = findPosition(matrix, a);
+            int[] posB = findPosition(matrix, b);
+
+            if (posA[0] == posB[0]) {
+                result.append(matrix[posA[0]][(posA[1] + 1) % 5]);
+                result.append(matrix[posB[0]][(posB[1] + 1) % 5]);
+            } else if (posA[1] == posB[1]) {
+                result.append(matrix[(posA[0] + 1) % 5][posA[1]]);
+                result.append(matrix[(posB[0] + 1) % 5][posB[1]]);
+            } else {
+                result.append(matrix[posA[0]][posB[1]]);
+                result.append(matrix[posB[0]][posA[1]]);
+            }
+        }
+        return result.toString().toUpperCase();
+    }
+
+    private static String decrypt(String text, char[][] matrix) {
+        text = text.toLowerCase();
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < text.length(); i += 2) {
+            char a = text.charAt(i);
+            char b = text.charAt(i + 1);
+            int[] posA = findPosition(matrix, a);
+            int[] posB = findPosition(matrix, b);
+
+            if (posA[0] == posB[0]) {
+                result.append(matrix[posA[0]][(posA[1] + 4) % 5]);
+                result.append(matrix[posB[0]][(posB[1] + 4) % 5]);
+            } else if (posA[1] == posB[1]) {
+                result.append(matrix[(posA[0] + 4) % 5][posA[1]]);
+                result.append(matrix[(posB[0] + 4) % 5][posB[1]]);
+            } else {
+                result.append(matrix[posA[0]][posB[1]]);
+                result.append(matrix[posB[0]][posA[1]]);
+            }
+        }
+         return result.toString().replaceAll("x+$", "");
+    }
+
+    private static void printMatrix(char[][] matrix) {
+        System.out.println("\nPlayfair Key Matrix:");
+        for (char[] row : matrix) {
+            for (char c : row)
+                System.out.print(c + " ");
+            System.out.println();
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("\n--- PLAYFAIR CIPHER MENU ---");
+            System.out.println("1. Encrypt");
+            System.out.println("2. Decrypt");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+
+            while (!sc.hasNextInt()) {
+                System.out.print("Invalid input. Enter 1, 2, or 3: ");
+                sc.next();
+            }
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            if (choice == 3) {
+                System.out.println("Exiting program...");
+                break;
+            }
+
+            if (choice != 1 && choice != 2) {
+                System.out.println("Invalid choice. Try again.");
+                continue;
+            }
+
+            System.out.print("Enter lowercase key: ");
+            String key = sc.nextLine().trim().toLowerCase();
+            while (!key.matches("[a-z]+")) {
+                System.out.print("Key must contain only lowercase letters (a-z): ");
+                key = sc.nextLine().trim().toLowerCase();
+            }
+
+            char[][] matrix = generateKeyMatrix(key);
+            printMatrix(matrix);
+
+            if (choice == 1) {
+                System.out.print("Enter plaintext (lowercase): ");
+                String text = sc.nextLine().trim().toLowerCase();
+                while (!text.matches("[a-z ]+")) {
+                    System.out.print("Text must contain only lowercase letters (a-z): ");
+                    text = sc.nextLine().trim().toLowerCase();
+                }
+                String encrypted = encrypt(text, matrix);
+                System.out.println("Encrypted Text: " + encrypted);
+            } else {
+                System.out.print("Enter ciphertext (uppercase): ");
+                String text = sc.nextLine().trim().toLowerCase();
+                String decrypted = decrypt(text, matrix);
+                System.out.println("Decrypted Text: " + decrypted);
+            }
+        }
+
+        sc.close();
+    }
+}
